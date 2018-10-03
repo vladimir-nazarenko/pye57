@@ -77,15 +77,27 @@ if DEBUG:
 
 libraries = []
 library_dirs = []
+xercesc_path = None
 if platform.system() == "Windows":
     PYTHON_HOME = os.path.split(sys.executable)[0]
     python_include = os.path.join(PYTHON_HOME, r"Library", "include")
     library_dirs.append(os.path.join(PYTHON_HOME, r"Library", "lib"))
+    xercesc_name = "xerces-c_3.lib"
     libraries.append("xerces-c_3")
 else:
     paths = sysconfig.get_paths()
     python_include = paths["include"]
+    xercesc_name = "xerces-c.so"
     libraries.append("xerces-c")
+
+for path in library_dirs + [python_include]:
+    fullpath = os.path.join(path, xercesc_name)
+    if os.path.exists(fullpath):
+        xercesc_path = fullpath
+
+if not xercesc_path:
+    print("Error: couldn't find xerces-c, exiting.")
+    sys.exit(1)
 
 ext_modules = [
     Extension(
@@ -189,7 +201,8 @@ setup(
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
     url=URL,
-    packages=find_packages(exclude=('tests',)),
+    packages=['pye57'],
+    package_data={'pye57': [xercesc_path]},
     ext_modules=ext_modules,
     install_requires=REQUIRED,
     setup_requires=["pytest-runner"],
