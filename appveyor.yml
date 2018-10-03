@@ -21,6 +21,8 @@ install:
 build_script:
 - cmd: >-
     python.exe setup.py build_ext -i
+
+    conda remove -y xerces-c
 test_script:
 - cmd: >-
     cd C:\projects\pye57
