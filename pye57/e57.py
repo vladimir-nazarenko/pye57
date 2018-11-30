@@ -27,6 +27,7 @@ SUPPORTED_POINT_FIELDS = {
     "rowIndex": "H",
     "columnIndex": "H",
     "cartesianInvalidState": "b",
+    "class:classification": "d"
 }
 
 
@@ -142,6 +143,7 @@ class E57:
                   intensity=False,
                   colors=False,
                   row_column=False,
+                  classification=False,
                   transform=True,
                   ignore_missing_fields=False) -> Dict:
         header = self.get_header(index)
@@ -157,6 +159,8 @@ class E57:
         if row_column:
             fields.append("rowIndex")
             fields.append("columnIndex")
+        if classification:
+            fields.append("class:classification")
         fields.append("cartesianInvalidState")
 
         for field in fields[:]:
@@ -170,12 +174,11 @@ class E57:
         data, buffers = self.make_buffers(fields, n_points)
         header.points.reader(buffers).read()
 
-        valid = ~data["cartesianInvalidState"].astype("?")
-
-        for field in data:
-            data[field] = data[field][valid]
-
-        del data["cartesianInvalidState"]
+        if "cartesianInvalidState" in data:
+            valid = ~data["cartesianInvalidState"].astype("?")
+            for field in data:
+                data[field] = data[field][valid]
+            del data["cartesianInvalidState"]
 
         if transform:
             xyz = np.array([data["cartesianX"], data["cartesianY"], data["cartesianZ"]]).T
